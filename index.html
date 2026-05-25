@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Çipil Data Bridge</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 50px; background: #f4f4f9; }
+        button { padding: 15px 30px; font-size: 16px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; }
+        #result { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Data Bridge</h1>
+    <input type="file" id="fileInput">
+    <br><br>
+    <button onclick="upload()">Veriyi Gönder & Hız Testi Yap</button>
+    <div id="result"></div>
+
+    <script>
+        async function upload() {
+            const file = document.getElementById('fileInput').files[0];
+            if (!file) { alert("Lütfen bir dosya seç!"); return; }
+            
+            const formData = new FormData();
+            formData.append('data', file);
+            
+            document.getElementById('result').innerText = "Aktarılıyor...";
+            
+            const start = performance.now();
+            const res = await fetch('/transfer', {method: 'POST', body: formData});
+            const data = await res.json();
+            const end = performance.now();
+            
+            document.getElementById('result').innerText = "Sonuç: " + data.status + " | Hız: " + data.speed + " MB/s";
+        }
+    </script>
+</body>
+</html>
