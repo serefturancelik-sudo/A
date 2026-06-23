@@ -3,62 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Çipil - Kesin Çalışan Şikayet Hattı</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <title>Çipil - Şikayet Bildir</title>
     <style>
         :root { --bg: #0f172a; --card: #1e293b; --accent: #3b82f6; --text: #f8fafc; --muted: #94a3b8; --border: #334155; --success: #10b981; }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background: var(--bg); color: var(--text); padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .box { width: 100%; max-width: 500px; background: var(--card); border: 1px solid var(--border); padding: 30px; border-radius: 12px; }
+        .box { width: 100%; max-width: 500px; background: var(--card); border: 1px solid var(--border); padding: 30px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
         h2 { margin-bottom: 20px; border-left: 4px solid var(--accent); padding-left: 10px; font-size: 1.4rem; }
         .group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 0.9rem; }
         input[type="text"], select, textarea, input[type="file"] { width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: white; outline: none; }
+        .rating { display: flex; gap: 8px; flex-direction: row-reverse; justify-content: flex-end; }
+        .rating input { display: none; }
+        .rating label { font-size: 1.8rem; color: var(--border); cursor: pointer; }
+        .rating label:hover, .rating label:hover ~ label, .rating input:checked ~ label { color: #f59e0b; }
         .btn { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+        .btn:disabled { background: #475569; cursor: not-allowed; }
         .notif { display: none; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success); color: var(--success); padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
 <div class="box">
-    <h2>Şikayet Bildirim Formu (Site 1)</h2>
-    <div id="msg" class="notif">✔ Şikayetiniz başarıyla iletildi!</div>
+    <h2>Şikayet Formu (Site 1)</h2>
+    <div id="msg" class="notif">✔ Şikayetiniz başarıyla gönderildi!</div>
     
-    <form id="compForm" action="https://formspree.io/f/BURAYA_KENDİ_EPOSTA_ADRESİNİ_YAZ" method="POST" enctype="multipart/form-data">
+    <form id="compForm">
         <div class="group">
             <label>Adınız Soyadınız</label>
-            <input type="text" name="Kullanici_Adi" placeholder="Adınızı yazın..." required>
+            <input type="text" id="userName" placeholder="Adınızı yazın..." required>
         </div>
         <div class="group">
             <label>Şikayet Konusu</label>
-            <select name="Kategori" required>
+            <select id="cate" required>
                 <option value="Tasarım / Arayüz">Tasarım Hataları</option>
                 <option value="Sistem / Kod">Kodlama Problemi</option>
                 <option value="Öneri">Önerim Var</option>
             </select>
         </div>
         <div class="group">
-            <label>Şikayet Metni (Güvenli Şifrelenecek)</label>
-            <textarea id="plainText" rows="4" placeholder="Sorunu anlatın..." required></textarea>
-            <input type="hidden" name="Sifreli_Mesaj" id="encryptedText">
+            <label>Projeye Puanınız:</label>
+            <div class="rating">
+                <input type="radio" id="s5" name="rt" value="5"><label for="s5">★</label>
+                <input type="radio" id="s4" name="rt" value="4"><label for="s4">★</label>
+                <input type="radio" id="s3" name="rt" value="3"><label for="s3">★</label>
+                <input type="radio" id="s2" name="rt" value="2"><label for="s2">★</label>
+                <input type="radio" id="s1" name="rt" value="1"><label for="s1">★</label>
+            </div>
+        </div>
+        <div class="group">
+            <label>Şikayet Metni</label>
+            <textarea id="txt" rows="4" placeholder="Sorunu anlatın..." required></textarea>
         </div>
         <div class="group">
             <label>Ekran Fotoğrafı Yükle</label>
-            <input type="file" name="Ekran_Goruntusu" accept="image/*">
+            <input type="file" id="img" accept="image/*">
         </div>
-        <button type="submit" class="btn">Garantili Yolla</button>
+        <button type="submit" class="btn" id="submitBtn">Şikayeti Gönder</button>
     </form>
 </div>
 
 <script>
-    const SECRET_KEY = "CipilKriptoAnahtari123";
+    // Canlı ortak havuz API'si (Süreç kilitlenmesin diye fotoğraf boyutunu optimize eder)
+    let imgData = "";
+    document.getElementById('img').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                // Büyük fotoğrafların tarayıcıyı dondurmaması için kalitesini hafifçe optimize ediyoruz
+                const img = new Image();
+                img.src = event.target.result;
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = 600;
+                    canvas.height = (img.height / img.width) * 600;
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    imgData = canvas.toDataURL('image/jpeg', 0.6); 
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+    });
 
     document.getElementById('compForm').addEventListener('submit', function(e) {
-        const plainText = document.getElementById('plainText').value;
-        
-        // Mesajı göndermeden hemen önce AES ile şifreliyoruz, kimse çalamaz
-        const encrypted = CryptoJS.AES.encrypt(plainText, SECRET_KEY).toString();
-        document.getElementById('encryptedText').value = encrypted;
+        e.preventDefault();
+        const btn = document.getElementById('submitBtn');
+        btn.innerText = "Gönderiliyor...";
+        btn.disabled = true;
+
+        const packet = {
+            name: document.getElementById('userName').value,
+            category: document.getElementById('cate').value,
+            text: document.getElementById('txt').value,
+            rating: document.querySelector('input[name="rt"]:checked')?.value || "0",
+            image: imgData,
+            time: new Date().toLocaleString('tr-TR')
+        };
+
+        // Ücretsiz Jsonbin canlı veri havuzuna direkt yolluyoruz
+        fetch('https://api.jsonbin.io/v3/b/66183e8b4347693388656b26', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Master-Key': '$2a$10$wR6mSkl/88nI04VAn/pE7OnZgQfE822.4jZ58i7E4V8N7U6I3aRmW'
+            },
+            body: JSON.stringify(packet)
+        })
+        .then(() => {
+            document.getElementById('compForm').reset();
+            imgData = "";
+            const msg = document.getElementById('msg');
+            msg.style.display = 'block';
+            setTimeout(() => msg.style.display = 'none', 3000);
+        })
+        .catch(() => alert("Gönderilemedi, lütfen tekrar deneyin."))
+        .finally(() => {
+            btn.innerText = "Şikayeti Gönder";
+            btn.disabled = false;
+        });
     });
 </script>
 </body>
