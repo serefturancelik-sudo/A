@@ -3,16 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Çipil - Şikayet Oluştur (Site 1)</title>
+    <title>Çipil - Güvenli Şikayet Hattı</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         :root {
-            --bg: #0f172a;
-            --card: #1e293b;
-            --accent: #3b82f6;
-            --text: #f8fafc;
-            --muted: #94a3b8;
-            --border: #334155;
-            --success: #10b981;
+            --bg: #0f172a; --card: #1e293b; --accent: #3b82f6;
+            --text: #f8fafc; --muted: #94a3b8; --border: #334155; --success: #10b981;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
         body { background: var(--bg); color: var(--text); padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
@@ -20,7 +16,7 @@
         h2 { margin-bottom: 20px; border-left: 4px solid var(--accent); padding-left: 10px; font-size: 1.4rem; }
         .group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 0.9rem; }
-        select, textarea, input[type="file"] { width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: white; outline: none; }
+        input[type="text"], select, textarea, input[type="file"] { width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: white; outline: none; }
         .rating { display: flex; gap: 8px; flex-direction: row-reverse; justify-content: flex-end; }
         .rating input { display: none; }
         .rating label { font-size: 1.8rem; color: var(--border); cursor: pointer; }
@@ -32,10 +28,15 @@
 <body>
 
 <div class="box">
-    <h2>Şikayet Bildirim Formu (Şikayet 1)</h2>
-    <div id="msg" class="notif">✔ Şikayetiniz oluşturuldu! Havuza gönderildi.</div>
+    <h2>Şifreli Şikayet Formu (Site 1)</h2>
+    <div id="msg" class="notif">✔ Şikayetiniz uçuruldu ve şifreli havuzunuza iletildi!</div>
     
     <form id="compForm">
+        <div class="group">
+            <label>Adınız Soyadınız</label>
+            <input type="text" id="userName" placeholder="Lütfen adınızı yazın..." required>
+        </div>
+
         <div class="group">
             <label>Neyi şikayet edeceksiniz?</label>
             <select id="cate" required>
@@ -68,12 +69,14 @@
             <input type="file" id="img" accept="image/*">
         </div>
 
-        <button type="submit" class="btn">Şikayeti İlet</button>
+        <button type="submit" class="btn">Uçur ve Şifrele</button>
     </form>
 </div>
 
 <script>
+    const SECRET_KEY = "CipilKriptoAnahtari123"; // Şifreleme anahtarı (İki tarafta da aynı olmalı)
     let imgData = "";
+
     document.getElementById('img').addEventListener('change', function(e) {
         const file = e.target.files[0];
         if (file) {
@@ -86,7 +89,8 @@
     document.getElementById('compForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const complaint = {
+        const rawComplaint = {
+            name: document.getElementById('userName').value,
             category: document.getElementById('cate').value,
             text: document.getElementById('txt').value,
             rating: document.querySelector('input[name="rt"]:checked')?.value || "0",
@@ -94,17 +98,19 @@
             time: new Date().toLocaleTimeString()
         };
 
-        // GitHub Pages arası test ve yerel veri simülasyonu için localstorage havuzu
-        let currentData = JSON.parse(localStorage.getItem('cipil_complaints')) || [];
-        currentData.push(complaint);
-        localStorage.setItem('cipil_complaints', JSON.stringify(currentData));
+        // Veri gönderilmeden önce AES ile tamamen karıştırılıp şifreleniyor
+        const encryptedData = CryptoJS.AES.encrypt(JSON.stringify(rawComplaint), SECRET_KEY).toString();
+
+        let pool = JSON.parse(localStorage.getItem('cipil_secure_pool')) || [];
+        pool.push(encryptedData);
+        localStorage.setItem('cipil_secure_pool', JSON.stringify(pool));
 
         document.getElementById('compForm').reset();
         imgData = "";
         
         const msg = document.getElementById('msg');
         msg.style.display = 'block';
-        setTimeout(() => msg.style.display = 'none', 3000);
+        setTimeout(() => msg.style.display = 'none', 4000);
     });
 </script>
 </body>
