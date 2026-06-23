@@ -1,28 +1,111 @@
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Çipil - Şikayet Oluştur (Site 1)</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --accent: #3b82f6;
+            --text: #f8fafc;
+            --muted: #94a3b8;
+            --border: #334155;
+            --success: #10b981;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background: var(--bg); color: var(--text); padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .box { width: 100%; max-width: 500px; background: var(--card); border: 1px solid var(--border); padding: 30px; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
+        h2 { margin-bottom: 20px; border-left: 4px solid var(--accent); padding-left: 10px; font-size: 1.4rem; }
+        .group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 0.9rem; }
+        select, textarea, input[type="file"] { width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 6px; color: white; outline: none; }
+        .rating { display: flex; gap: 8px; flex-direction: row-reverse; justify-content: flex-end; }
+        .rating input { display: none; }
+        .rating label { font-size: 1.8rem; color: var(--border); cursor: pointer; }
+        .rating label:hover, .rating label:hover ~ label, .rating input:checked ~ label { color: #f59e0b; }
+        .btn { background: var(--accent); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: bold; width: 100%; margin-top: 10px; }
+        .notif { display: none; background: rgba(16, 185, 129, 0.1); border: 1px solid var(--success); color: var(--success); padding: 12px; border-radius: 6px; text-align: center; margin-bottom: 15px; }
+    </style>
 </head>
 <body>
-    <h2>Gerçek Zamanlı Çipil Bridge</h2>
-    <input type="file" id="fileInput">
-    <button onclick="send()">Gönder</button>
-    <div id="status"></div>
 
-    <script>
-        const socket = io();
-        // Dosya geldi mi diye dinle
-        socket.on('file_received', (data) => {
-            alert("Yeni dosya alındı: " + data.filename);
-            document.getElementById('status').innerText = "Son Gelen: " + data.filename;
-        });
+<div class="box">
+    <h2>Şikayet Bildirim Formu (Şikayet 1)</h2>
+    <div id="msg" class="notif">✔ Şikayetiniz oluşturuldu! Havuza gönderildi.</div>
+    
+    <form id="compForm">
+        <div class="group">
+            <label>Neyi şikayet edeceksiniz?</label>
+            <select id="cate" required>
+                <option value="" disabled selected>Seçiniz...</option>
+                <option value="Tasarım / Arayüz">Tasarım / Arayüz Hataları</option>
+                <option value="Sistem / Kod">Sistem / Kodlama Problemi</option>
+                <option value="Hız / Bağlantı">Yavaşlık / Bağlantı Sorunu</option>
+                <option value="Öneri">Sadece Önerim Var</option>
+            </select>
+        </div>
 
-        async function send() {
-            const file = document.getElementById('fileInput').files[0];
-            const formData = new FormData();
-            formData.append('data', file);
-            await fetch('/transfer', {method: 'POST', body: formData});
+        <div class="group">
+            <label>Projeye Puanınız:</label>
+            <div class="rating">
+                <input type="radio" id="s5" name="rt" value="5"><label for="s5">★</label>
+                <input type="radio" id="s4" name="rt" value="4"><label for="s4">★</label>
+                <input type="radio" id="s3" name="rt" value="3"><label for="s3">★</label>
+                <input type="radio" id="s2" name="rt" value="2"><label for="s2">★</label>
+                <input type="radio" id="s1" name="rt" value="1"><label for="s1">★</label>
+            </div>
+        </div>
+
+        <div class="group">
+            <label>Şikayet Metni</label>
+            <textarea id="txt" rows="4" placeholder="Sorunu detaylıca anlatın..." required></textarea>
+        </div>
+
+        <div class="group">
+            <label>Ekran Fotoğrafı Yükle</label>
+            <input type="file" id="img" accept="image/*">
+        </div>
+
+        <button type="submit" class="btn">Şikayeti İlet</button>
+    </form>
+</div>
+
+<script>
+    let imgData = "";
+    document.getElementById('img').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(event) { imgData = event.target.result; };
+            reader.readAsDataURL(file);
         }
-    </script>
+    });
+
+    document.getElementById('compForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const complaint = {
+            category: document.getElementById('cate').value,
+            text: document.getElementById('txt').value,
+            rating: document.querySelector('input[name="rt"]:checked')?.value || "0",
+            image: imgData,
+            time: new Date().toLocaleTimeString()
+        };
+
+        // GitHub Pages arası test ve yerel veri simülasyonu için localstorage havuzu
+        let currentData = JSON.parse(localStorage.getItem('cipil_complaints')) || [];
+        currentData.push(complaint);
+        localStorage.setItem('cipil_complaints', JSON.stringify(currentData));
+
+        document.getElementById('compForm').reset();
+        imgData = "";
+        
+        const msg = document.getElementById('msg');
+        msg.style.display = 'block';
+        setTimeout(() => msg.style.display = 'none', 3000);
+    });
+</script>
 </body>
 </html>
