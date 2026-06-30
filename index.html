@@ -1,797 +1,130 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Samsung Galaxy A17 - Android 17 V4 (VPN & Roblox Update)</title>
-    <style>
-        /* Genel SIFIRLAMA */
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; 
-            user-select: none; 
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beko Mini Oyunlar</title>
 
-        body { 
-            background: #0d0d13; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            min-height: 100vh; 
-            color: white; 
-            overflow: hidden; 
-            transition: background 0.5s ease; 
-        }
-        
-        /* Cyberpunk Modu Arka Planı */
-        body.cyberpunk-mode .screen { 
-            background: url('https://images.unsplash.com/photo-1542838132-92c53300491e?q=80&w=1000') center/cover !important; 
-        }
-        body.cyberpunk-mode .camera-notch {
-            color: #ff0055 !important;
-            border-color: #ff0055 !important;
-        }
+<style>
+body{
+    background:#111;
+    color:white;
+    font-family:Arial;
+    text-align:center;
+}
 
-        /* TELEFON DIŞ KASASI */
-        .phone-container { 
-            position: relative; 
-            width: 380px; 
-            height: 780px; 
-            background: #000; 
-            border-radius: 48px; 
-            padding: 12px; 
-            border: 4px solid #2d2d35; 
-            box-shadow: 0 25px 60px rgba(0,0,0,0.8), 0 0 40px rgba(255,255,255,0.03); 
-        }
+#main{
+    display:none;
+}
 
-        /* Fiziksel Yan Tuş */
-        .side-button { 
-            position: absolute; 
-            right: -8px; 
-            top: 220px; 
-            width: 8px; 
-            height: 65px; 
-            background: #444; 
-            cursor: pointer; 
-            border-radius: 0 5px 5px 0; 
-            z-index: 100; 
-            transition: background 0.2s;
-        }
-        .side-button:active {
-            background: #ff0055;
-        }
+input{
+    padding:10px;
+    font-size:18px;
+}
 
-        /* TELEFON EKRANI */
-        .screen { 
-            position: relative; 
-            width: 100%; 
-            height: 100%; 
-            background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1000') center/cover; 
-            border-radius: 38px; 
-            overflow: hidden; 
-            display: flex; 
-            flex-direction: column; 
-            transition: background 0.5s ease;
-        }
+button{
+    padding:10px 20px;
+    font-size:18px;
+    margin:10px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+}
 
-        /* Dinamik Ada / Kamera */
-        .camera-notch { 
-            position: absolute; 
-            top: 10px; 
-            left: 50%; 
-            transform: translateX(-50%); 
-            width: 140px; 
-            height: 30px; 
-            background: black; 
-            border-radius: 20px; 
-            z-index: 10; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            font-size: 11px; 
-            color: #1abc9c; 
-            font-weight: bold; 
-            border: 1px solid rgba(26, 188, 156, 0.3);
-            transition: width 0.3s ease, background-color 0.3s; 
-        }
+.game{
+    background:#222;
+    width:250px;
+    margin:20px auto;
+    padding:20px;
+    border-radius:15px;
+}
 
-        /* Üst Durum Çubuğu */
-        .status-bar { 
-            height: 45px; 
-            padding: 15px 20px 0; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            font-size: 13px; 
-            font-weight: 600; 
-            z-index: 5; 
-        }
+#ai{
+    position:fixed;
+    right:15px;
+    bottom:15px;
+    background:#333;
+    padding:15px;
+    border-radius:15px;
+    width:220px;
+}
+</style>
 
-        /* Masaüstü Izgarası */
-        .home-screen { 
-            flex: 1; 
-            padding: 30px 20px; 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 15px; 
-            align-content: start; 
-        }
-        
-        /* Uygulama Simgeleri */
-        .app-icon { 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            cursor: pointer; 
-            transition: transform 0.2s; 
-        }
-        .app-icon:active { 
-            transform: scale(0.85); 
-        }
-        .app-img { 
-            width: 55px; 
-            height: 55px; 
-            border-radius: 18px; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            font-size: 26px; 
-            box-shadow: 0 8px 15px rgba(0,0,0,0.4); 
-            margin-bottom: 6px; 
-        }
-        .app-name { 
-            font-size: 11px; 
-            text-align: center; 
-            font-weight: 500; 
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.8); 
-        }
-
-        /* Simge Renk Geçişleri */
-        .bg-bank { background: linear-gradient(135deg, #0066ff, #0033aa); }
-        .bg-store { background: linear-gradient(135deg, #ff9900, #ff5500); }
-        .bg-garage { background: linear-gradient(135deg, #1abc9c, #16a085); }
-        .bg-settings { background: linear-gradient(135deg, #555, #222); }
-        .bg-game { background: linear-gradient(135deg, #ed4c67, #b53471); }
-        .bg-call { background: linear-gradient(135deg, #4cd137, #44bd32); }
-        .bg-torch { background: linear-gradient(135deg, #f1c40f, #f39c12); }
-
-        /* Uygulama Çekmecesi */
-        .app-drawer { 
-            position: absolute; 
-            top: 100%; 
-            left: 0; 
-            width: 100%; 
-            height: 90%; 
-            background: rgba(10, 10, 15, 0.96); 
-            backdrop-filter: blur(20px); 
-            border-radius: 30px 30px 0 0; 
-            transition: top 0.4s cubic-bezier(0.1, 0.8, 0.3, 1); 
-            z-index: 30; 
-            padding: 30px 20px; 
-            border-top: 1px solid rgba(255,255,255,0.05);
-        }
-        .app-drawer.active { 
-            top: 12%; 
-        }
-        .drawer-grid { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 20px; 
-        }
-
-        /* Uygulama Pencereleri */
-        .app-window { 
-            position: absolute; 
-            top: 100%; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background: #101014; 
-            border-radius: 35px; 
-            z-index: 40; 
-            transition: top 0.35s cubic-bezier(0.1, 0.8, 0.3, 1); 
-            padding: 60px 20px 20px; 
-            display: flex; 
-            flex-direction: column; 
-            overflow-y: auto; 
-        }
-        .app-window.active { 
-            top: 0; 
-        }
-        .close-bar { 
-            width: 45px; 
-            height: 5px; 
-            background: #444; 
-            border-radius: 5px; 
-            margin: 0 auto 20px auto; 
-            cursor: pointer; 
-            transition: background 0.2s;
-        }
-        .close-bar:hover {
-            background: #666;
-        }
-
-        /* Gerçekçi Android Bildirim Kutusu (Toast) */
-        .android-toast {
-            position: absolute;
-            bottom: 60px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: rgba(20, 20, 25, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: #eee;
-            padding: 12px 20px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 500;
-            z-index: 90;
-            white-space: nowrap;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            transition: transform 0.3s cubic-bezier(0.1, 0.8, 0.3, 1), opacity 0.3s;
-            opacity: 0;
-            pointer-events: none;
-        }
-        .android-toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-
-        /* VPN Bağlantı Portalı */
-        .vpn-portal {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(8, 8, 12, 0.98);
-            z-index: 80;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 30px;
-            border-radius: 35px;
-        }
-        .vpn-shield {
-            font-size: 65px;
-            margin-bottom: 20px;
-            animation: shieldPulse 1.5s infinite alternate;
-        }
-        .vpn-progress-bar {
-            width: 80%;
-            height: 6px;
-            background: #222;
-            border-radius: 3px;
-            margin: 20px 0;
-            overflow: hidden;
-            position: relative;
-        }
-        .vpn-progress-fill {
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(90deg, #1abc9c, #2ecc71);
-            position: absolute;
-            top: 0;
-            left: 0;
-            transition: width 0.1s linear;
-        }
-
-        /* El Feneri Siyah/Beyaz Panel */
-        .torch-screen { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background: white; 
-            z-index: 60; 
-            display: none; 
-            border-radius: 35px; 
-        }
-
-        /* Sahte Arama Arayüzü */
-        .call-screen { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            background: #09090d; 
-            z-index: 55; 
-            display: none; 
-            flex-direction: column; 
-            justify-content: space-between; 
-            padding: 80px 30px; 
-            text-align: center; 
-            border-radius: 35px; 
-        }
-
-        /* Koşucu Oyunu Alanı */
-        #gameArea { 
-            width: 100%; 
-            height: 150px; 
-            background: #16161a; 
-            border: 1px solid #2d2d35; 
-            position: relative; 
-            overflow: hidden; 
-            border-radius: 12px; 
-            margin: 15px 0; 
-        }
-        #player { 
-            position: absolute; 
-            bottom: 10px; 
-            left: 20px; 
-            font-size: 28px; 
-            transition: bottom 0.1s; 
-        }
-        #obstacle { 
-            position: absolute; 
-            bottom: 10px; 
-            right: -30px; 
-            font-size: 28px; 
-        }
-
-        /* Mega Store & Arama Çubuğu */
-        .store-search { 
-            width: 100%; 
-            padding: 12px; 
-            background: #18181c; 
-            border: 1px solid #2d2d35; 
-            color: white; 
-            border-radius: 12px; 
-            margin-bottom: 15px; 
-            outline: none;
-            transition: border-color 0.2s;
-        }
-        .store-search:focus {
-            border-color: #ff9900;
-        }
-        .store-item { 
-            background: #161622; 
-            padding: 14px; 
-            border-radius: 14px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 10px; 
-            border: 1px solid rgba(255,255,255,0.03);
-        }
-        .btn-download { 
-            background: linear-gradient(135deg, #ff9900, #ff5500); 
-            border: none; 
-            color: white; 
-            padding: 8px 16px; 
-            border-radius: 8px; 
-            cursor: pointer; 
-            font-weight: bold; 
-            font-size: 12px;
-            transition: opacity 0.2s;
-        }
-        .btn-download:active {
-            opacity: 0.8;
-        }
-
-        /* Beleş Garaj Modifikasyon Bölümü */
-        .garage-panel {
-            background: #161622;
-            padding: 15px;
-            border-radius: 14px;
-            margin-top: 10px;
-            text-align: center;
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-        .color-picker-wrapper {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            margin: 10px 0;
-        }
-        .garage-input {
-            width: 100%;
-            padding: 10px;
-            background: #111;
-            border: 1px solid #333;
-            color: white;
-            border-radius: 8px;
-            text-align: center;
-            outline: none;
-        }
-
-        /* Navigasyon Çubuğu */
-        .nav-bar { 
-            height: 40px; 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            z-index: 5; 
-            background: rgba(0,0,0,0.1); 
-        }
-        .nav-line { 
-            width: 120px; 
-            height: 5px; 
-            background: rgba(255,255,255,0.4); 
-            border-radius: 10px; 
-            cursor: pointer; 
-            transition: background 0.2s;
-        }
-        .nav-line:hover {
-            background: rgba(255,255,255,0.7);
-        }
-
-        /* Animasyonlar */
-        @keyframes shieldPulse {
-            from { transform: scale(1); filter: drop-shadow(0 0 5px #1abc9c); }
-            to { transform: scale(1.1); filter: drop-shadow(0 0 20px #2ecc71); }
-        }
-    </style>
 </head>
 <body>
 
-    <div class="phone-container">
-        <!-- Samsung Yan Fiziksel Butonu (Tek Tık AI / Çift Tık Tema Değişimi) -->
-        <div class="side-button" id="sideBtn" title="Tek Tık: Asistan | Çift Tık: Cyberpunk"></div>
-        
-        <div class="screen">
-            <!-- Üst Dinamik Ada -->
-            <div class="camera-notch" id="notch">Android 17 AI</div>
-            
-            <!-- Durum ve FPS Bilgisi -->
-            <div class="status-bar">
-                <div id="clock">09:00</div>
-                <div id="fpsCounter" style="color: #ff9900; font-family: monospace; font-size: 11px;">FPS: --</div>
-                <div style="display: flex; gap: 4px;">🔋 100%</div>
-            </div>
+<h1>🎮 Beko Mini Oyunlar</h1>
 
-            <!-- ANA EKRAN UYGULAMALARI -->
-            <div class="home-screen">
-                <div class="app-icon" onclick="openApp('storeApp')">
-                    <div class="app-img bg-store">🛍️</div>
-                    <div class="app-name">Mega Store</div>
-                </div>
-                <div class="app-icon" onclick="openApp('garageApp')">
-                    <div class="app-img bg-garage">🚗</div>
-                    <div class="app-name">A17 Garaj</div>
-                </div>
-                <div class="app-icon" onclick="openApp('settingsApp')">
-                    <div class="app-img bg-settings">⚙️</div>
-                    <div class="app-name">Ayarlar</div>
-                </div>
-                <div class="app-icon" onclick="openApp('gameApp')">
-                    <div class="app-img bg-game">🎮</div>
-                    <div class="app-name">A17 Koşucu</div>
-                </div>
-            </div>
+<div id="login">
 
-            <!-- UYGULAMA ÇEKMECESİ (DRAWER) -->
-            <div class="app-drawer" id="appDrawer">
-                <div class="close-bar" onclick="toggleDrawer(false)"></div>
-                <div class="drawer-grid">
-                    <div class="app-icon" onclick="openApp('bankApp'); toggleDrawer(false);">
-                        <div class="app-img bg-bank">🏦</div>
-                        <div class="app-name">A17 Bank</div>
-                    </div>
-                    <div class="app-icon" onclick="triggerFakeCall(); toggleDrawer(false);">
-                        <div class="app-img bg-call">📞</div>
-                        <div class="app-name">Sahte Arama</div>
-                    </div>
-                    <div class="app-icon" onclick="toggleTorch(true); toggleDrawer(false);">
-                        <div class="app-img bg-torch">🔦</div>
-                        <div class="app-name">El Feneri</div>
-                    </div>
-                </div>
-            </div>
+<h2>Adını Gir</h2>
 
-            <!-- MEGA STORE (1 Milyar Oyun & VPN Destekli Roblox) -->
-            <div class="app-window" id="storeApp">
-                <div class="close-bar" onclick="closeApp('storeApp')"></div>
-                <h2 style="margin-bottom: 5px;">Mega Store (A17 Market)</h2>
-                <p style="color: #ff9900; font-size: 11px; margin-bottom: 15px;">⚡ 1,000,000,000+ Sınırsız Oyun Havuzu Aktif</p>
-                <input type="text" class="store-search" id="storeSearch" placeholder="Oyun ara (Örn: Roblox, Brawl Stars)..." oninput="searchGames(this.value)">
-                
-                <div id="storeList">
-                    <!-- Roblox VPN Entegre Sürüm -->
-                    <div class="store-item" style="border: 1px solid rgba(26, 188, 156, 0.3); background: rgba(26, 188, 156, 0.05);">
-                        <div>
-                            <h4 style="color: #1abc9c;">Roblox + Free VPN Mod 🌐</h4>
-                            <p style="font-size: 10px; color: #888; margin-top: 2px;">Türkiye Anti-Ban Engeli Kaldırıldı</p>
-                        </div>
-                        <button class="btn-download" style="background: linear-gradient(135deg, #1abc9c, #2ecc71);" onclick="startVpnRobloxSequence()">YÜKLE</button>
-                    </div>
-                    
-                    <div class="store-item">
-                        <div>
-                            <h4>Brawl Stars 🌟</h4>
-                            <p style="font-size: 10px; color: #888; margin-top: 2px;">Sınırsız Elmas & Karakter Mod</p>
-                        </div>
-                        <button class="btn-download" onclick="realDownload('https://play.google.com/store/apps/details?id=com.supercell.brawlstars')">YÜKLE</button>
-                    </div>
+<input id="name" placeholder="Adın">
 
-                    <div class="store-item">
-                        <div>
-                            <h4>Minecraft Bedrock 🌍</h4>
-                            <p style="font-size: 10px; color: #888; margin-top: 2px;">Ücretsiz Tam Sürüm</p>
-                        </div>
-                        <button class="btn-download" onclick="realDownload('https://play.google.com/store/apps/details?id=com.mojang.minecraftpe')">YÜKLE</button>
-                    </div>
-                </div>
-            </div>
+<br>
 
-            <!-- %100 BELEŞ MODİFİYE GARAJI -->
-            <div class="app-window" id="garageApp">
-                <div class="close-bar" onclick="closeApp('garageApp')"></div>
-                <h2>A17 Garaj (%100 Beleş)</h2>
-                <p style="color: #1abc9c; font-size: 11px; margin-bottom: 15px;">Boyama ve Özel Plaka Hizmetleri Ücretsizdir</p>
-                
-                <div class="garage-panel">
-                    <h3 style="margin-bottom: 5px;">Tofaş Şahin 🚗</h3>
-                    <div id="c1" style="font-size: 55px; margin: 15px 0; transition: color 0.3s;">🚗</div>
-                    
-                    <div class="color-picker-wrapper">
-                        <span>Gövde Rengi:</span>
-                        <input type="color" onchange="document.getElementById('c1').style.color=this.value" value="#ffffff" style="border: none; width: 45px; height: 30px; cursor: pointer; background: none;">
-                    </div>
-                    
-                    <input type="text" class="garage-input" placeholder="YENİ PLAKA YAZIN" maxlength="11" oninput="document.getElementById('p1').innerText=this.value.toUpperCase() || 'PLAKA YOK'">
-                    <div id="p1" style="background: white; color: black; font-weight: bold; font-family: monospace; margin-top: 12px; display: inline-block; padding: 4px 10px; border-radius: 4px; border: 2px solid #000; font-size: 14px;">34 CIPIL 17</div>
-                </div>
-            </div>
+<button onclick="start()">Başla</button>
 
-            <!-- SİSTEM AYARLARI -->
-            <div class="app-window" id="settingsApp">
-                <div class="close-bar" onclick="closeApp('settingsApp')"></div>
-                <h2>Sistem Ayarları</h2>
-                <div style="background: #161622; padding: 12px; border-radius: 10px; margin-top: 15px; border-left: 4px solid #ff9900;">Cihaz Modeli: Samsung Galaxy A17</div>
-                <div style="background: #161622; padding: 12px; border-radius: 10px; margin-top: 8px; border-left: 4px solid #1abc9c;">Depolama Alnı: 16 TB / 0 GB Dolu</div>
-                <div style="background: #161622; padding: 12px; border-radius: 10px; margin-top: 8px; border-left: 4px solid #4cd137;">Yazılım Sürümü: Android 17 (Cherry-Pie)</div>
-                <button style="background: #ff4757; color: white; width: 100%; border: none; padding: 12px; border-radius: 12px; margin-top: 25px; font-weight: bold; cursor: pointer;" onclick="systemFactoryReset()">SİSTEMİ FABRİKA AYARLARINA SIFIRLA</button>
-            </div>
+</div>
 
-            <!-- ANDROID KOŞUCU OYUNU -->
-            <div class="app-window" id="gameApp">
-                <div class="close-bar" onclick="closeApp('gameApp')"></div>
-                <h2>A17 Koşucu</h2>
-                <p style="color: #888; font-size: 11px;">Hatalardan (👾) zıplayarak kaçın!</p>
-                <div id="gameArea">
-                    <div id="player">📱</div>
-                    <div id="obstacle">👾</div>
-                </div>
-                <button style="width: 100%; background: #2ed573; border: none; color: white; padding: 14px; border-radius: 12px; font-weight: bold; cursor: pointer;" onclick="gameJump()">ZIPLA!</button>
-                <p id="gameStatus" style="text-align: center; margin-top: 12px; font-size: 13px; color: #ffeaa7;">Sistem Durumu: Çevrimdışı Mod Hazır</p>
-            </div>
+<div id="main">
 
-            <!-- BANKA -->
-            <div class="app-window" id="bankApp">
-                <div class="close-bar" onclick="closeApp('bankApp')"></div>
-                <h2>A17 Dijital Banka</h2>
-                <div style="background: #161622; padding: 25px; border-radius: 20px; text-align: center; margin-top: 30px; border: 1px solid rgba(255,255,255,0.05);">
-                    <p style="color: #888; font-size: 13px;">Toplam Finansal Varlık</p>
-                    <h1 style="color: #2ed573; margin-top: 10px; font-size: 28px;">999,999,999.00 ₺</h1>
-                </div>
-            </div>
+<h2>Hoş geldin <span id="player"></span> 👋</h2>
 
-            <!-- EL FENERİ (BEYAZ EKRAN) -->
-            <div class="torch-screen" id="torchOverlay" onclick="toggleTorch(false)"></div>
+<h2>💰 Para: <span id="money">1</span> TL</h2>
 
-            <!-- SAHTE ARAMA EKRANI -->
-            <div class="call-screen" id="callOverlay">
-                <div>
-                    <h2 style="color: #ddd;">Bilinmeyen Numara</h2>
-                    <p style="font-size: 13px; color: #888; margin-top: 5px;">Gizli Numaradan Arıyor...</p>
-                </div>
-                <div style="font-size: 70px; margin: 30px 0; animation: shieldPulse 1s infinite alternate;">📞</div>
-                <div style="display: flex; justify-content: space-around; width: 100%;">
-                    <button style="background: #ff4757; border-radius: 50%; width: 65px; height: 65px; border: none; font-size: 20px; cursor: pointer;" onclick="endFakeCall()">❌</button>
-                    <button style="background: #2ed573; border-radius: 50%; width: 65px; height: 65px; border: none; font-size: 20px; cursor: pointer;" onclick="acceptFakeCall()">✅</button>
-                </div>
-            </div>
+<div class="game">
+<h2>🍄 Mario</h2>
+<p>Yakında...</p>
+</div>
 
-            <!-- VPN BAĞLANTI SİMÜLATÖRÜ -->
-            <div class="vpn-portal" id="vpnPortal">
-                <div class="vpn-shield">🛡️</div>
-                <h3 style="color: #1abc9c;">A17 Secure VPN</h3>
-                <p style="font-size: 12px; color: #888; margin-top: 5px;">Roblox için şifreli tünel kuruluyor...</p>
-                <div class="vpn-progress-bar">
-                    <div class="vpn-progress-fill" id="vpnProgressFill"></div>
-                </div>
-                <span style="font-size: 13px; font-weight: bold; color: #eee;" id="vpnStatusText">Bağlanılıyor: %0</span>
-            </div>
+<div class="game">
+<h2>⛏️ Mini Minecraft 2D</h2>
+<p>Yakında...</p>
+</div>
 
-            <!-- Alt Navigasyon Barı (Sürükleme Çizgisi) -->
-            <div class="nav-bar">
-                <div class="nav-line" onclick="toggleDrawer(true)"></div>
-            </div>
-            
-            <!-- Android Gerçekçi Toast Bildirim Kutusu -->
-            <div class="android-toast" id="toastBox">Android Bildirim</div>
+</div>
 
-        </div>
-    </div>
+<div id="ai">
+🤖 <span id="message">Merhaba!</span>
+</div>
 
-    <script>
-        // ── GERÇEKÇİ TOAST BİLDİRİM FONKSİYONU ──
-        function showAndroidToast(message) {
-            const toast = document.getElementById('toastBox');
-            toast.innerText = message;
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
+<script>
 
-        // Saat Güncellemesi
-        setInterval(() => { 
-            const d = new Date(); 
-            document.getElementById('clock').innerText = `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`; 
-        }, 1000);
-        
-        // Canlı FPS Sayacı Mekanizması
-        let lastTime = Date.now(), fps = 0;
-        function fpsLoop() { 
-            let dt = (Date.now() - lastTime)/1000; 
-            lastTime = Date.now(); 
-            fps = Math.round(1/dt); 
-            document.getElementById('fpsCounter').innerText = `FPS: ${fps}`; 
-            requestAnimationFrame(fpsLoop); 
-        }
-        requestAnimationFrame(fpsLoop);
+function start(){
 
-        // Arayüz Pencerelerini Yönetme
-        function openApp(id) { 
-            document.getElementById(id).classList.add('active'); 
-        }
-        function closeApp(id) { 
-            document.getElementById(id).classList.remove('active'); 
-        }
-        function toggleDrawer(show) { 
-            document.getElementById('appDrawer').classList.toggle('active', show); 
-        }
-        
-        // Fener ve Arama Modu Tetikleyicileri
-        function toggleTorch(show) { 
-            document.getElementById('torchOverlay').style.display = show ? 'block' : 'none'; 
-            if(show) showAndroidToast("El feneri açıldı. Kapatmak için ekrana tıklayın.");
-        }
-        function triggerFakeCall() { 
-            document.getElementById('callOverlay').style.display = 'flex'; 
-        }
-        function endFakeCall() { 
-            document.getElementById('callOverlay').style.display = 'none'; 
-            showAndroidToast("Arama sonlandırıldı.");
-        }
-        function acceptFakeCall() {
-            document.getElementById('callOverlay').style.display = 'none';
-            showAndroidToast("Bağlandı: 'Alo, kiminle görüşüyorum?'");
-        }
+let isim=document.getElementById("name").value;
 
-        // Fabrika Ayarlarına Dönme
-        function systemFactoryReset() {
-            showAndroidToast("Sistem sıfırlanıyor... Lütfen bekleyin.");
-            setTimeout(() => {
-                location.reload();
-            }, 1500);
-        }
+if(isim=="") return;
 
-        // Gerçek Dosya/Mağaza İndirmelerini Simüle Etme
-        function realDownload(url) { 
-            showAndroidToast("Gerçek indirme başlatılıyor..."); 
-            setTimeout(() => {
-                window.open(url, '_blank');
-            }, 1000);
-        }
+document.getElementById("player").innerHTML=isim;
 
-        // ── SİHİRLİ VPN & ROBLOX AKTİVASYONU ──
-        function startVpnRobloxSequence() {
-            const portal = document.getElementById('vpnPortal');
-            const fill = document.getElementById('vpnProgressFill');
-            const status = document.getElementById('vpnStatusText');
-            
-            portal.style.display = 'flex';
-            fill.style.width = '0%';
-            
-            let percent = 0;
-            const interval = setInterval(() => {
-                percent += 5;
-                fill.style.width = percent + '%';
-                status.innerText = `Güvenli Tünel Kuruluyor: %${percent}`;
-                
-                if(percent >= 100) {
-                    clearInterval(interval);
-                    status.innerText = "BAĞLANTI BAŞARILI! GÜVENLİ TÜNEL AKTİF.";
-                    setTimeout(() => {
-                        portal.style.display = 'none';
-                        showAndroidToast("Roblox Anti-Ban VPN Modu kuruldu!");
-                        // Türkiye engelsiz Roblox arama/indirme linkine yönlendiriyoruz
-                        window.open('https://play.google.com/store/apps/details?id=com.roblox.client', '_blank');
-                    }, 1200);
-                }
-            }, 120);
-        }
+document.getElementById("login").style.display="none";
 
-        // 1 Milyar Oyun Arama Algoritması
-        function searchGames(query) {
-            const list = document.getElementById('storeList');
-            if(query.trim() === "") {
-                list.innerHTML = `
-                    <div class="store-item" style="border: 1px solid rgba(26, 188, 156, 0.3); background: rgba(26, 188, 156, 0.05);">
-                        <div>
-                            <h4 style="color: #1abc9c;">Roblox + Free VPN Mod 🌐</h4>
-                            <p style="font-size: 10px; color: #888; margin-top: 2px;">Türkiye Anti-Ban Engeli Kaldırıldı</p>
-                        </div>
-                        <button class="btn-download" style="background: linear-gradient(135deg, #1abc9c, #2ecc71);" onclick="startVpnRobloxSequence()">YÜKLE</button>
-                    </div>
-                    <div class="store-item">
-                        <div>
-                            <h4>Brawl Stars 🌟</h4>
-                            <p style="font-size: 10px; color: #888; margin-top: 2px;">Sınırsız Elmas & Karakter Mod</p>
-                        </div>
-                        <button class="btn-download" onclick="realDownload('https://play.google.com/store/apps/details?id=com.supercell.brawlstars')">YÜKLE</button>
-                    </div>
-                    <div class="store-item">
-                        <div>
-                            <h4>Minecraft Bedrock 🌍</h4>
-                            <p style="font-size: 10px; color: #888; margin-top: 2px;">Ücretsiz Tam Sürüm</p>
-                        </div>
-                        <button class="btn-download" onclick="realDownload('https://play.google.com/store/apps/details?id=com.mojang.minecraftpe')">YÜKLE</button>
-                    </div>
-                `;
-                return;
-            }
-            // Yazılan her ismi 1 Milyar oyun veritabanından dinamik olarak türetir
-            const formattedQuery = query.charAt(0).toUpperCase() + query.slice(1);
-            list.innerHTML = `
-                <div class="store-item" style="border: 1px solid rgba(255, 153, 0, 0.2);">
-                    <div>
-                        <h4>${formattedQuery} + VPN Mod Premium 📱</h4>
-                        <p style="font-size: 10px; color: #888; margin-top: 2px;">Sınırsız Sürüm & Engeller Aşılmış</p>
-                    </div>
-                    <button class="btn-download" onclick="realDownload('https://play.google.com/store/search?q='+encodeURIComponent(query)+'&c=apps')">YÜKLE</button>
-                </div>
-            `;
-        }
+document.getElementById("main").style.display="block";
 
-        // Android Koşucu Oyun Döngüsü
-        let jumping = false, obsPos = 320;
-        function gameJump() { 
-            if(!jumping) { 
-                jumping = true; 
-                document.getElementById('player').style.bottom = '80px'; 
-                setTimeout(() => { 
-                    document.getElementById('player').style.bottom = '10px'; 
-                    jumping = false; 
-                }, 400); 
-            } 
-        }
-        setInterval(() => {
-            obsPos -= 6; 
-            if(obsPos < -20) obsPos = 320;
-            document.getElementById('obstacle').style.left = obsPos + 'px';
-            
-            // Çarpışma Mekanizması
-            if(obsPos < 45 && obsPos > 15 && !jumping) { 
-                document.getElementById('gameStatus').innerText = "Sistem Çöktü! Yeniden Deneniyor..."; 
-                showAndroidToast("Oyun Over: Yazılım Hatasına Çarptın!");
-                obsPos = 320; 
-                setTimeout(() => {
-                    document.getElementById('gameStatus').innerText = "Sistem Kararlı... Devam Et!";
-                }, 1500);
-            }
-        }, 30);
+}
 
-        // Samsung Fiziksel Tuş Kısayolları (Çift Tık: Neon Teması)
-        let clicks = 0;
-        document.getElementById('sideBtn').addEventListener('click', () => { 
-            clicks++; 
-            if(clicks === 2) { 
-                document.body.classList.toggle('cyberpunk-mode'); 
-                showAndroidToast("Sistem Teması Değiştirildi!");
-                clicks = 0; 
-            } 
-            setTimeout(() => clicks = 0, 300); 
-        });
-    </script>
+let mesajlar=[
+"Merhaba! 👋",
+"Mario'yu denedin mi? 🍄",
+"Mini Minecraft yakında! ⛏️",
+"Bol şans! 🎮",
+"TL kazanmaya devam et! 💰",
+"Yeni oyunlar gelecek! ⭐",
+"İyi eğlenceler! 😄",
+"See you! 👋"
+];
+
+setInterval(function(){
+
+let r=Math.floor(Math.random()*mesajlar.length);
+
+document.getElementById("message").innerHTML=mesajlar[r];
+
+},4000);
+
+</script>
+
 </body>
 </html>
