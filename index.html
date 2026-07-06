@@ -1,1268 +1,276 @@
-```html
 <!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>Beko Mini Oyunlar</title>
-<!-- FontAwesome İkon Kütüphanesi -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+<title>Osuruk Simülatörü</title>
 <style>
-/* GENEL VE LOBİ STİLLERİ (Birebir Senin Tasarımın) */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    background: #111;
-    color: white;
-    font-family: Arial, sans-serif;
-    text-align: center;
-    overflow-x: hidden;
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #000;
+    overflow: hidden;
+    font-family: 'Segoe UI', Arial, sans-serif;
+  }
+  #stage {
+    position: relative;
+    width: 100%; height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
     user-select: none;
-    -webkit-user-select: none;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: center;
-}
-
-h1 {
-    font-size: 26px;
-    margin-top: 40px;
-    margin-bottom: 25px;
-    font-weight: bold;
-}
-
-#login, #main {
-    width: 100%;
-    max-width: 360px;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-#main {
-    display: none;
-}
-
-h2 {
-    font-size: 20px;
-    margin-bottom: 15px;
-}
-
-#money-container {
-    font-size: 18px;
-    font-weight: bold;
-    background: #1e1e1e;
-    padding: 8px 20px;
-    border-radius: 20px;
-    border: 1px solid #2d2d2d;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 20px;
-}
-
-input {
-    padding: 12px;
-    font-size: 18px;
-    width: 100%;
-    max-width: 280px;
-    background: #222;
-    border: 1px solid #333;
-    color: white;
-    border-radius: 10px;
-    text-align: center;
-    margin-bottom: 15px;
-    outline: none;
-}
-
-button {
-    padding: 12px 24px;
-    font-size: 16px;
-    margin: 10px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-weight: bold;
-    background: #f3f4f6;
-    color: black;
-    transition: transform 0.1s, background 0.2s;
-    width: 100%;
-    max-width: 140px;
-}
-
-button:active {
-    transform: scale(0.95);
-}
-
-/* OYUN KARTLARI */
-.game {
-    background: #222;
-    width: 100%;
-    margin-bottom: 15px;
-    padding: 25px 20px;
-    border-radius: 15px;
-    cursor: pointer;
-    border: 1px solid #2d2d2d;
-    transition: transform 0.15s, background 0.2s;
-}
-
-.game:active {
-    transform: scale(0.97);
-    background: #282828;
-}
-
-.game h2 {
-    font-size: 20px;
-    margin-bottom: 5px;
-}
-
-.game p {
-    color: #888;
-    font-size: 13px;
-}
-
-/* ROBOT TOST BİLDİRİM KUTUSU */
-#ai {
-    position: fixed;
+  }
+  #character {
+    font-size: 160px;
+    transition: transform 0.12s ease-out;
+    transform-origin: center bottom;
+    filter: drop-shadow(0 0 20px rgba(255,255,255,0.08));
+  }
+  #character.bend {
+    transform: rotate(25deg) translateY(20px) scaleY(0.9);
+  }
+  #hud {
+    position: absolute;
+    top: 30px;
     left: 50%;
     transform: translateX(-50%);
-    bottom: 20px;
-    background: #222;
-    padding: 14px 20px;
-    border-radius: 15px;
-    width: calc(100% - 40px);
-    max-width: 280px;
-    border: 1px solid #333;
-    font-size: 13px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    z-index: 40;
-}
-
-/* MARIO TAM EKRAN OYUN ALANI */
-#mario-screen {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: #000;
-    z-index: 50;
-    overflow: hidden;
-    touch-action: none;
-}
-
-#mario-viewport {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(to bottom, #3b82f6, #93c5fd);
-    transition: background 0.5s ease;
-}
-
-/* Hızlandığında arka planın kızıllaşması efekti */
-#mario-viewport.boosted {
-    background: linear-gradient(to bottom, #ef4444, #f87171) !important;
-}
-
-.cloud {
-    position: absolute;
-    color: rgba(255, 255, 255, 0.35);
-    font-size: 40px;
-    pointer-events: none;
-}
-
-#mario-ground {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 48px;
-    background: #92400e;
-    border-top: 8px solid #22c55e;
-    z-index: 10;
-}
-
-#mario-char {
-    position: absolute;
-    bottom: 48px;
-    left: 48px;
-    width: 40px;
-    height: 48px;
-    z-index: 20;
-    transition: transform 0.05s ease;
-}
-
-/* Zıplama Hak Pips */
-.pips-container {
-    position: absolute;
-    top: -15px;
-    left: 0;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    gap: 3px;
-}
-
-.pip {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: #22c55e;
-    border: 1px solid rgba(0,0,0,0.4);
-}
-
-#exit-btn {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    width: 40px;
-    height: 40px;
-    background: #ef4444;
-    border: none;
-    border-radius: 50%;
-    color: white;
+    text-align: center;
+    color: #eee;
+    letter-spacing: 1px;
+  }
+  #hud .score {
+    font-size: 42px;
     font-weight: bold;
+    color: #fff;
+  }
+  #hud .level {
     font-size: 18px;
-    cursor: pointer;
-    z-index: 30;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-bottom: 3px solid #b91c1c;
-}
-
-/* Üst Canlı Bilgi Paneli */
-#live-score-board {
+    color: #999;
+    margin-top: 4px;
+  }
+  .puff {
     position: absolute;
-    top: 15px;
-    right: 15px;
-    background: rgba(0,0,0,0.85);
-    padding: 8px 15px;
-    border-radius: 12px;
-    border: 1px solid #333;
-    font-weight: bold;
-    font-size: 12px;
-    z-index: 30;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 4px;
-}
-
-#live-score-board span {
-    display: block;
-}
-
-#touch-jump-surface {
-    position: absolute;
-    inset: 0;
-    width: 65%;
-    z-index: 15;
-    cursor: pointer;
-}
-
-#right-jump-action-btn {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    width: 110px;
-    height: 60px;
-    background: #ef4444;
-    border: none;
-    border-bottom: 4px solid #b91c1c;
-    border-radius: 15px;
-    color: white;
-    font-weight: bold;
-    font-size: 14px;
-    z-index: 30;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2px;
-}
-
-#mario-objects-container {
-    position: absolute;
-    inset: 0;
-    z-index: 12;
+    font-size: 40px;
+    opacity: 0;
     pointer-events: none;
-}
-
-.question-block-anim {
-    animation: qPulse 0.6s infinite alternate;
-}
-@keyframes qPulse {
-    0% { background-color: #eab308; }
-    100% { background-color: #ea580c; }
-}
-
-.jump-puff-effect {
+    transform: translate(-50%, -50%);
+    animation: puffAnim 0.6s ease-out forwards;
+  }
+  @keyframes puffAnim {
+    0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.5) rotate(0deg); }
+    30%  { opacity: 1; }
+    100% { opacity: 0; transform: translate(-60%, -180%) scale(1.8) rotate(20deg); }
+  }
+  .rain-drop {
     position: absolute;
-    background: rgba(255,255,255,0.6);
-    border-radius: 50%;
-    width: 30px;
-    height: 8px;
-    filter: blur(1px);
+    top: -20px;
+    width: 2px;
+    height: 18px;
+    background: linear-gradient(to bottom, rgba(200,200,200,0), rgba(200,200,200,0.7));
     pointer-events: none;
-    z-index: 14;
-    animation: puffFade 0.25s forwards ease-out;
-}
-@keyframes puffFade {
-    0% { transform: scale(0.6); opacity: 0.9; }
-    100% { transform: scale(1.4); opacity: 0; }
-}
-
-#mario-start-overlay, #mario-over-overlay {
+  }
+  @keyframes fallDown {
+    from { transform: translateY(0); }
+    to   { transform: translateY(110vh); }
+  }
+  #hint {
     position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.92);
-    z-index: 45;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 25px;
-    gap: 15px;
-}
-
-#mario-start-overlay h3, #mario-over-overlay h3 {
-    font-size: 24px;
-    color: #ef4444;
-    font-weight: bold;
-}
-
-#mario-start-overlay p {
+    bottom: 30px;
+    width: 100%;
+    text-align: center;
+    color: #555;
     font-size: 13px;
-    color: #aaa;
-    max-width: 280px;
-    line-height: 1.5;
-}
-
-/* SİSTEM TOST BİLDİRİMİ */
-#toast-notification {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translate(-50%, -80px);
-    background: #222;
-    border: 1px solid #333;
-    padding: 10px 20px;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-    font-size: 13px;
-    color: white;
-    z-index: 120;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: transform 0.3s ease-out;
-    pointer-events: none;
-}
-
-#toast-notification.show {
-    transform: translate(-50%, 0);
-}
+  }
 </style>
 </head>
 <body>
 
-    <!-- SİSTEM TOST BİLDİRİM ALANI -->
-    <div id="toast-notification">
-        <span id="toast-emoji">🍄</span>
-        <span id="toast-message-text">Hazır!</span>
-    </div>
+<div id="stage">
+  <div id="hud">
+    <div class="score">Skor: <span id="scoreVal">0</span></div>
+    <div class="level">Seviye <span id="levelVal">1</span></div>
+  </div>
 
-    <h1>🎮 Beko Mini Oyunlar</h1>
+  <div id="character">🧍</div>
 
-    <!-- 1. GİRİŞ EKRANI -->
-    <div id="login">
-        <h2>Adını Gir</h2>
-        <input id="name" placeholder="Adın">
-        <button onclick="start()">Başla</button>
-    </div>
+  <div id="hint">Karaktere tıkla</div>
+</div>
 
-    <!-- 2. ANA EKRAN / LOBİ -->
-    <div id="main">
-        <h2>Hoş geldin <span id="player"></span> 👋</h2>
-        
-        <div id="money-container">
-            <span>💰 Para:</span>
-            <span id="money">1</span>
-            <span>TL</span>
-        </div>
+<!-- Ses dosyası: fart.mp3 aynı klasörde bulunmalı -->
+<audio id="fartAudio" src="fart.mp3" preload="auto"></audio>
 
-        <!-- Mario Oyun Kartı -->
-        <div class="game" onclick="launchMario()">
-            <h2>🍄 Mario</h2>
-            <p>Oynamak için tıkla!</p>
-        </div>
+<script>
+(function () {
+  const stage = document.getElementById('stage');
+  const character = document.getElementById('character');
+  const puff = document.getElementById('puff');
+  const audio = document.getElementById('fartAudio');
+  const scoreVal = document.getElementById('scoreVal');
+  const levelVal = document.getElementById('levelVal');
 
-        <!-- Minecraft Oyun Kartı -->
-        <div class="game">
-            <h2>⛏️ Mini Minecraft 2D</h2>
-            <p>Yakında...</p>
-        </div>
-    </div>
+  let score = 0;
+  let level = 1;
 
-    <!-- 3. TAM EKRAN MARIO OYUN KATMANI -->
-    <div id="mario-screen">
-        <div id="mario-viewport">
-            
-            <!-- Süs Gökyüzü Bulutları -->
-            <div class="cloud" style="top: 10%; left: 8%;"><i class="fa-solid fa-cloud"></i></div>
-            <div class="cloud" style="top: 20%; right: 12%;"><i class="fa-solid fa-cloud"></i></div>
-            
-            <!-- Arka Plan Dağları -->
-            <div style="position: absolute; bottom: 48px; left: 0; right: 0; height: 50px; display: flex; opacity: 0.35; pointer-events: none;">
-                <div style="width: 70px; height: 30px; background: #059669; border-top-left-radius: 35px; border-top-right-radius: 35px;"></div>
-                <div style="width: 110px; height: 50px; background: #10b981; border-top-left-radius: 50px; border-top-right-radius: 50px; margin-left: -30px;"></div>
-                <div style="width: 80px; height: 25px; background: #059669; border-top-left-radius: 40px; border-top-right-radius: 40px; margin-left: -20px;"></div>
-            </div>
+  // audio.mp3 bulunamazsa Web Audio API ile sentetik osuruk sesi üretmek için yedek sistem
+  let audioFileFailed = false;
+  audio.addEventListener('error', () => { audioFileFailed = true; });
 
-            <!-- Yer Zemin -->
-            <div id="mario-ground">
-                <div style="width: 100%; height: 100%; opacity: 0.15; background: linear-gradient(45deg, #000 25%, transparent 25%, transparent 50%, #000 50%, #000 75%, transparent 75%, transparent); background-size: 10px 10px;"></div>
-            </div>
+  let actx = null;
 
-            <!-- Mario Karakter Elementi -->
-            <div id="mario-char">
-                <div class="pips-container">
-                    <div id="pip-1" class="pip"></div>
-                    <div id="pip-2" class="pip"></div>
-                    <div id="pip-3" class="pip"></div>
-                </div>
-                <!-- Mario Klasik Pixel Art SVG Çizimi -->
-                <svg viewBox="0 0 16 16" class="w-full h-full" style="image-rendering: pixelated; filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.4));" id="mario-svg">
-                    <!-- Şapka -->
-                    <rect x="3" y="1" width="9" height="1" fill="#f00"/>
-                    <rect x="2" y="2" width="5" height="1" fill="#f00"/>
-                    <!-- Saç ve Bıyık -->
-                    <rect x="2" y="3" width="3" height="3" fill="#640"/>
-                    <rect x="6" y="5" width="4" height="1" fill="#640"/>
-                    <!-- Yüz / Ten rengi -->
-                    <rect x="5" y="2" width="4" height="3" fill="#fcc"/>
-                    <rect x="4" y="3" width="5" height="2" fill="#fcc"/>
-                    <rect x="3" y="4" width="7" height="1" fill="#fcc"/>
-                    <rect x="3" y="5" width="3" height="1" fill="#fcc"/>
-                    <rect x="5" y="5" width="1" height="1" fill="#000"/> <!-- Göz -->
-                    <rect x="4" y="6" width="5" height="1" fill="#fcc"/>
-                    <!-- Tulum / Gövde (Mavi) -->
-                    <rect x="3" y="7" width="8" height="6" fill="#00f"/>
-                    <!-- Kollar (Kırmızı) -->
-                    <rect x="2" y="8" width="2" height="4" fill="#f00"/>
-                    <rect x="10" y="8" width="2" height="4" fill="#f00"/>
-                    <rect x="4" y="7" width="6" height="1" fill="#f00"/>
-                    <!-- Sarı Düğmeler -->
-                    <rect x="5" y="9" width="1" height="1" fill="#ff0"/>
-                    <rect x="8" y="9" width="1" height="1" fill="#ff0"/>
-                    <!-- Ayakkabılar (Kahverengi) -->
-                    <rect x="2" y="13" width="4" height="2" fill="#640"/>
-                    <rect x="8" y="13" width="4" height="2" fill="#640"/>
-                </svg>
-            </div>
+  // Gerçekçi osuruk sesi: düzensiz frekans + kekeleyen genlik + ıslak/patlamalı doku
+  function playSyntheticFart(volume, intensity) {
+    if (!actx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      actx = new AudioCtx();
+    }
+    if (actx.state === 'suspended') actx.resume();
 
-            <!-- Nesnelerin Akacağı Katman -->
-            <div id="mario-objects-container"></div>
+    const t0 = actx.currentTime;
+    const duration = Math.min(1.5, 0.55 + intensity * 0.08);
+    const sampleRate = actx.sampleRate;
+    const bufferSize = Math.floor(sampleRate * duration);
 
-            <!-- Geri Çıkış Butonu (Çarpı) -->
-            <button id="exit-btn" onclick="exitMario()"><i class="fa-solid fa-xmark"></i></button>
+    const buffer = actx.createBuffer(1, bufferSize, sampleRate);
+    const data = buffer.getChannelData(0);
 
-            <!-- Üst Canlı Bilgi Paneli -->
-            <div id="live-score-board">
-                <span style="color: #60a5fa;"><i class="fa-solid fa-layer-group"></i> Level: <span id="mario-level" style="color: white;">1</span></span>
-                <span style="color: #4ade80;"><i class="fa-solid fa-person-running"></i> Hız: <span id="mario-speed-val" style="color: white;">4.2</span></span>
-                <span style="color: #fde047;"><i class="fa-solid fa-coins"></i> Kazanılan: <span id="mario-current-score" style="color: white;">0</span> TL</span>
-                <span style="color: #a78bfa;"><i class="fa-solid fa-flag"></i> Yol: <span id="mario-distance" style="color: white;">0</span>m</span>
-            </div>
+    let phase = Math.random();
+    let currentFreq = 65 + Math.random() * 55;
 
-            <!-- Sol/Orta Dokunmatik Zıplama Alanı -->
-            <div id="touch-jump-surface"></div>
+    const burstFreq = 3.5 + Math.random() * 2.5 + intensity * 0.5;
+    const burstPhaseOffset = Math.random() * Math.PI * 2;
+    const wetFreq = 9 + Math.random() * 4;
 
-            <!-- Alternatif Sağ Zıplama Düğmesi -->
-            <button id="right-jump-action-btn">
-                <span>⚡ ZIPLA!</span>
-                <span style="font-size: 9px; opacity: 0.8;">3 HAK</span>
-            </button>
+    for (let i = 0; i < bufferSize; i++) {
+      const t = i / bufferSize;
 
-            <!-- BAŞLANGIÇ PANELİ -->
-            <div id="mario-start-overlay">
-                <span style="font-size: 50px;" class="animate-bounce">🍄</span>
-                <h3>BEKO MARIO: SONSUZ TEST SÜRÜMÜ</h3>
-                <p>Engeller ve bloklar ekranın sağından gelerek hızla akar. Her 500 metrede bir Level atlayarak zorluk artar! Soru işaretlerine kafa atıp para ya da Süper Hız Boostu kazanabilirsin!</p>
-                <button onclick="startMarioGame()" style="background: #22c55e; color: black; max-width: 180px;">OYUNU BAŞLAT 🎮</button>
-            </div>
+      const targetFreq = (65 + Math.random() * 70) * (1 - 0.5 * t);
+      currentFreq = currentFreq * 0.98 + targetFreq * 0.02;
+      phase += currentFreq / sampleRate;
+      const saw = 2 * (phase - Math.floor(phase)) - 1;
 
-            <!-- OYUN BİTTİ PANELİ -->
-            <div id="mario-over-overlay" style="display: none;">
-                <h3>OYUN BİTTİ!</h3>
-                <p style="font-size: 16px; margin-bottom: 5px;">📍 Seviye: <span id="mario-final-level" style="color: #60a5fa; font-weight: bold;">1</span></p>
-                <p style="font-size: 16px; margin-bottom: 10px;">💰 Toplam Paran: <span id="mario-final-score" style="color: #fde047; font-weight: bold;">0</span> TL</p>
-                <div style="display: flex; gap: 10px; width: 100%; justify-content: center;">
-                    <button onclick="startMarioGame()" style="background: #22c55e; color: black;">Tekrar</button>
-                    <button onclick="exitMario()" style="background: #333; color: white;">Lobi</button>
-                </div>
-            </div>
+      const burst = 0.5 + 0.4 * Math.sin(t * Math.PI * 2 * burstFreq + burstPhaseOffset)
+                        + 0.2 * Math.sin(t * Math.PI * 2 * burstFreq * 2.3)
+                        + 0.15 * Math.sin(t * Math.PI * 2 * wetFreq);
 
-        </div>
-    </div>
+      const noise = (Math.random() * 2 - 1);
 
-    <!-- 4. ROBOT BİLGİ KUTUSU -->
-    <div id="ai">
-        🤖 <span id="message">Merhaba! 👋</span>
-    </div>
+      const attack = Math.min(1, t * 30);
+      const decay = Math.pow(1 - t, 0.65);
+      const envelope = attack * decay;
 
-    <script>
-        // --- RETRO SES JENERATÖRÜ (Web Audio API) ---
-        let audioCtx = null;
-        function initAudio() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
+      const sampleVal = (saw * 0.5 + noise * 0.65) * burst * envelope;
+      data[i] = Math.max(-1, Math.min(1, sampleVal));
+    }
+
+    const source = actx.createBufferSource();
+    source.buffer = buffer;
+
+    const filter = actx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.Q.value = 4;
+    filter.frequency.setValueAtTime(1100, t0);
+    filter.frequency.exponentialRampToValueAtTime(200, t0 + duration);
+
+    const gain = actx.createGain();
+    gain.gain.setValueAtTime(volume, t0);
+
+    source.connect(filter);
+    filter.connect(gain);
+    gain.connect(actx.destination);
+
+    source.start(t0);
+    source.stop(t0 + duration);
+  }
+
+  function playFartSound() {
+    const volume = Math.min(1, 0.3 + level * 0.07);
+
+    if (!audioFileFailed) {
+      try {
+        audio.currentTime = 0;
+        audio.volume = volume;
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch(() => {
+            audioFileFailed = true;
+            playSyntheticFart(volume, level);
+          });
         }
+      } catch (e) {
+        audioFileFailed = true;
+        playSyntheticFart(volume, level);
+      }
+    } else {
+      playSyntheticFart(volume, level);
+    }
+  }
+
+  function bendCharacter() {
+    character.classList.add('bend');
+    setTimeout(() => character.classList.remove('bend'), 180);
+  }
+
+  // Seviye arttıkça daha fazla gaz bulutu çıksın
+  function showPuff() {
+    const rect = character.getBoundingClientRect();
+    const baseX = rect.left + rect.width / 2;
+    const baseY = rect.top + rect.height * 0.75;
+
+    const puffCount = Math.min(8, level); // seviye 1 = 1 puf, seviye 8+ = 8 puf
+
+    for (let i = 0; i < puffCount; i++) {
+      setTimeout(() => {
+        const p = document.createElement('div');
+        p.className = 'puff';
+        p.textContent = '💨';
+        const offsetX = (Math.random() - 0.5) * 40 * (1 + level * 0.1);
+        const offsetY = (Math.random() - 0.5) * 15;
+        p.style.left = (baseX + offsetX) + 'px';
+        p.style.top = (baseY + offsetY) + 'px';
+        p.style.fontSize = (30 + Math.random() * 20) + 'px';
+        stage.appendChild(p);
+        setTimeout(() => p.remove(), 700);
+      }, i * 60);
+    }
+  }
+
+  function spawnRain() {
+    const dropCount = 40;
+    for (let i = 0; i < dropCount; i++) {
+      setTimeout(() => {
+        const drop = document.createElement('div');
+        drop.className = 'rain-drop';
+        drop.style.left = Math.random() * 100 + 'vw';
+        const fallDuration = 0.8 + Math.random() * 0.6;
+        drop.style.animation = `fallDown ${fallDuration}s linear forwards`;
+        stage.appendChild(drop);
+        setTimeout(() => drop.remove(), fallDuration * 1000 + 100);
+      }, i * 15);
+    }
+  }
+
+  function handleClick() {
+    score++;
+    scoreVal.textContent = score;
+
+    if (score % 10 === 0) {
+      level++;
+      levelVal.textContent = level;
+      spawnRain();
+    }
+
+    bendCharacter();
+    showPuff();
+    playFartSound();
+  }
+
+  stage.addEventListener('click', handleClick);
+  stage.addEventListener('touchstart', function (e) {
+    e.preventDefault();
+    handleClick();
+  }, { passive: false });
+})();
+</script>
 
-        function playSound(type) {
-            try {
-                initAudio();
-                if (!audioCtx) return;
-                
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                
-                let now = audioCtx.currentTime;
-                
-                if (type === 'jump') {
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(150, now);
-                    osc.frequency.exponentialRampToValueAtTime(600, now + 0.15);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.15);
-                    osc.start(now);
-                    osc.stop(now + 0.15);
-                } else if (type === 'coin') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(987.77, now);
-                    osc.frequency.setValueAtTime(1318.51, now + 0.08);
-                    gain.gain.setValueAtTime(0.1, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.25);
-                    osc.start(now);
-                    osc.stop(now + 0.25);
-                } else if (type === 'hit') {
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(120, now);
-                    osc.frequency.linearRampToValueAtTime(60, now + 0.1);
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.1);
-                    osc.start(now);
-                    osc.stop(now + 0.1);
-                } else if (type === 'boost') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(200, now);
-                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.3);
-                    gain.gain.setValueAtTime(0.1, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.3);
-                    osc.start(now);
-                    osc.stop(now + 0.3);
-                } else if (type === 'level') {
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(523.25, now);
-                    osc.frequency.setValueAtTime(659.25, now + 0.1);
-                    osc.frequency.setValueAtTime(783.99, now + 0.2);
-                    osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.3);
-                    gain.gain.setValueAtTime(0.1, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
-                    osc.start(now);
-                    osc.stop(now + 0.4);
-                } else if (type === 'death') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(300, now);
-                    osc.frequency.linearRampToValueAtTime(50, now + 0.4);
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.4);
-                    osc.start(now);
-                    osc.stop(now + 0.4);
-                }
-            } catch (e) {}
-        }
-
-        // --- HESAP VE CÜZDAN PARAMETRELERİ ---
-        let activePlayerName = "";
-        let playerAccount = {
-            username: "",
-            money: 1
-        };
-
-        // --- GİRİŞ BAŞLATMA FONKSİYONU ---
-        function start() {
-            let nameInput = document.getElementById("name").value.trim();
-            if (nameInput === "") {
-                triggerToast("Lütfen bir isim girin!", "🤖");
-                return;
-            }
-
-            activePlayerName = nameInput;
-
-            let savedWallet = localStorage.getItem("beko_wallet_user_" + activePlayerName);
-            if (savedWallet) {
-                playerAccount = JSON.parse(savedWallet);
-                triggerToast(`Tekrar hoş geldin, ${activePlayerName}!`, "🔑");
-            } else {
-                playerAccount = {
-                    username: activePlayerName,
-                    money: 1
-                };
-                saveDataToStorage();
-                triggerToast(`Hesap oluşturuldu! Hoş geldin ${activePlayerName}!`, "🆕");
-            }
-
-            document.getElementById("player").innerText = playerAccount.username;
-            document.getElementById("money").innerText = playerAccount.money;
-
-            document.getElementById("login").style.display = "none";
-            document.getElementById("main").style.display = "flex";
-            
-            initAudio();
-        }
-
-        function saveDataToStorage() {
-            if (activePlayerName) {
-                localStorage.setItem("beko_wallet_user_" + activePlayerName, JSON.stringify(playerAccount));
-            }
-        }
-
-        // --- MARIO OYUN FİZİĞİ VE AKIŞ MANTIĞI ---
-        let isGameRunning = false;
-        let isJumpingState = false;
-        let verticalSpeed = 0;
-        let marioPositionHeightY = 0;
-
-        const physicsGravity = 0.72;
-        const groundThreshold = 48;
-        const charBoundingWidth = 40;
-        const charBoundingHeight = 48;
-        const charFixedX = 48;
-
-        let airJumpCounter = 0;
-        const maxConsecutiveJumps = 3;
-
-        let spawnIntervalTimer = null;
-        let physicalStepLoop = null;
-        
-        let marioLevel = 1;
-        let marioDistance = 0;
-        let baseSpeed = 4.2;
-        let objectMovingSpeed = 4.2;
-        
-        let isBoostActive = false;
-        let boostTimer = null;
-
-        function launchMario() {
-            initAudio();
-            document.getElementById("mario-screen").style.display = "block";
-            document.getElementById("mario-start-overlay").style.display = "flex";
-            document.getElementById("mario-over-overlay").style.display = "none";
-            document.getElementById("mario-current-score").innerText = playerAccount.money;
-            
-            marioLevel = 1;
-            marioDistance = 0;
-            objectMovingSpeed = baseSpeed;
-            document.getElementById("mario-level").innerText = marioLevel;
-            document.getElementById("mario-speed-val").innerText = objectMovingSpeed.toFixed(1);
-            document.getElementById("mario-distance").innerText = marioDistance;
-        }
-
-        function exitMario() {
-            isGameRunning = false;
-            clearTimeout(spawnIntervalTimer);
-            clearInterval(physicalStepLoop);
-            clearTimeout(boostTimer);
-            deactivateBoost();
-
-            document.getElementById("mario-screen").style.display = "none";
-            document.getElementById("money").innerText = playerAccount.money;
-            saveDataToStorage();
-        }
-
-        function startMarioGame() {
-            document.getElementById("mario-start-overlay").style.display = "none";
-            document.getElementById("mario-over-overlay").style.display = "none";
-            document.getElementById("mario-objects-container").innerHTML = "";
-
-            isGameRunning = true;
-            marioLevel = 1;
-            marioDistance = 0;
-            baseSpeed = 4.2;
-            objectMovingSpeed = baseSpeed;
-            marioPositionHeightY = 0;
-            verticalSpeed = 0;
-            airJumpCounter = 0;
-            isJumpingState = false;
-            document.getElementById("mario-char").style.bottom = `${groundThreshold}px`;
-            
-            deactivateBoost();
-            updatePipsUI();
-            updateLiveStats();
-
-            physicalStepLoop = setInterval(runMainPhysics, 1000 / 60);
-            generateEntitiesFlow();
-
-            triggerToast("Oyun başladı! Bol şans!", "🍄");
-            playSound('level');
-        }
-
-        function updatePipsUI() {
-            const availableJumps = maxConsecutiveJumps - airJumpCounter;
-            for (let i = 1; i <= 3; i++) {
-                const pip = document.getElementById(`pip-${i}`);
-                if (i <= availableJumps) {
-                    pip.style.background = "#22c55e";
-                } else {
-                    pip.style.background = "#ef4444";
-                }
-            }
-        }
-
-        function updateLiveStats() {
-            document.getElementById("mario-level").innerText = marioLevel;
-            document.getElementById("mario-speed-val").innerText = objectMovingSpeed.toFixed(1);
-            document.getElementById("mario-distance").innerText = Math.floor(marioDistance);
-            document.getElementById("mario-current-score").innerText = playerAccount.money;
-        }
-
-        function executeJumpAction() {
-            if (!isGameRunning) return;
-
-            if (airJumpCounter < maxConsecutiveJumps) {
-                isJumpingState = true;
-                airJumpCounter++;
-                verticalSpeed = 11.2;
-                
-                playSound('jump');
-
-                if (airJumpCounter > 1) {
-                    spawnJumpPuffCloud();
-                }
-
-                updatePipsUI();
-
-                const charEl = document.getElementById("mario-char");
-                charEl.style.transform = "scaleY(1.2)";
-                setTimeout(() => { charEl.style.transform = "scaleY(1)"; }, 100);
-            }
-        }
-
-        function spawnJumpPuffCloud() {
-            const puff = document.createElement("div");
-            puff.className = "jump-puff-effect";
-            puff.style.left = `${charFixedX + 4}px`;
-            puff.style.bottom = `${groundThreshold + marioPositionHeightY}px`;
-            document.getElementById("mario-viewport").appendChild(puff);
-            setTimeout(() => puff.remove(), 250);
-        }
-
-        function runMainPhysics() {
-            if (!isGameRunning) return;
-
-            let distanceIncrement = objectMovingSpeed * 0.05; 
-            marioDistance += distanceIncrement;
-            
-            let newLevel = Math.floor(marioDistance / 500) + 1;
-            if (newLevel > marioLevel) {
-                marioLevel = newLevel;
-                baseSpeed = 4.2 + (marioLevel - 1) * 0.8;
-                if (!isBoostActive) {
-                    objectMovingSpeed = baseSpeed;
-                }
-                playSound('level');
-                triggerToast(`Level ${marioLevel}! Hız Artıyor!`, "🚀");
-            }
-
-            updateLiveStats();
-
-            if (isJumpingState || marioPositionHeightY > 0) {
-                verticalSpeed -= physicsGravity;
-                marioPositionHeightY += verticalSpeed;
-
-                if (marioPositionHeightY <= 0) {
-                    marioPositionHeightY = 0;
-                    isJumpingState = false;
-                    verticalSpeed = 0;
-                    airJumpCounter = 0;
-                    updatePipsUI();
-                }
-                document.getElementById("mario-char").style.bottom = `${groundThreshold + marioPositionHeightY}px`;
-            }
-
-            updateSolaKayanNesneler();
-        }
-
-        function updateSolaKayanNesneler() {
-            const container = document.getElementById("mario-objects-container");
-            const entities = container.querySelectorAll(".game-obj");
-            let isStuckOnBlock = false;
-
-            entities.forEach(entity => {
-                let currentLeft = parseFloat(entity.style.left);
-                currentLeft -= objectMovingSpeed;
-                entity.style.left = `${currentLeft}px`;
-
-                // Ekrandan tamamen çıkınca sil
-                if (currentLeft < -120) {
-                    entity.remove();
-                    return;
-                }
-
-                const type = entity.dataset.type;
-                const entityBottom = parseFloat(entity.style.bottom);
-                const entityWidth = parseFloat(entity.style.width);
-                const entityHeight = parseFloat(entity.style.height);
-
-                const mLeft = charFixedX;
-                const mRight = charFixedX + charBoundingWidth;
-                const mBottom = groundThreshold + marioPositionHeightY;
-                const mTop = mBottom + charBoundingHeight;
-
-                const eLeft = currentLeft;
-                const eRight = currentLeft + entityWidth;
-                const eBottom = entityBottom;
-                const eTop = eBottom + entityHeight;
-
-                if (mRight > eLeft && mLeft < eRight) {
-                    if (type === "obstacle") {
-                        if (mBottom < eTop && mTop > eBottom) {
-                            handleGameOver();
-                        }
-                    }
-
-                    if (type === "question" || type === "brick") {
-                        if (verticalSpeed <= 0 && mBottom >= eTop - 12 && mBottom <= eTop + 2) {
-                            marioPositionHeightY = eTop - groundThreshold;
-                            verticalSpeed = 0;
-                            isJumpingState = false;
-                            airJumpCounter = 0;
-                            updatePipsUI();
-                            isStuckOnBlock = true;
-                        }
-                        else if (verticalSpeed > 0 && mTop >= eBottom && mBottom < eBottom) {
-                            verticalSpeed = -2.5;
-                            marioPositionHeightY = eBottom - groundThreshold - charBoundingHeight - 1;
-                            headbuttBlock(entity);
-                        }
-                    }
-
-                    if (type === "coin") {
-                        if (mTop > eBottom && mBottom < eTop) {
-                            collectCoinItem(entity);
-                        }
-                    }
-                }
-            });
-
-            if (!isStuckOnBlock && marioPositionHeightY > 0 && !isJumpingState) {
-                isJumpingState = true;
-                verticalSpeed = -1;
-            }
-        }
-
-        function headbuttBlock(block) {
-            if (block.dataset.used === "true") return;
-
-            block.style.transform = "translateY(-10px)";
-            setTimeout(() => { block.style.transform = "translateY(0)"; }, 80);
-            
-            playSound('hit');
-
-            if (block.dataset.type === "question") {
-                block.dataset.used = "true";
-                block.classList.remove("question-block-anim");
-                block.style.backgroundColor = "#44403c";
-                block.style.borderColor = "#292524";
-                block.innerHTML = `
-                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; opacity: 0.3;">
-                        <div style="width: 5px; height: 5px; background: white; border-radius: 50%; position: absolute; top: 3px; left: 3px;"></div>
-                        <div style="width: 5px; height: 5px; background: white; border-radius: 50%; position: absolute; top: 3px; right: 3px;"></div>
-                    </div>
-                `;
-
-                const blockLeft = parseFloat(block.style.left);
-                const blockBottom = parseFloat(block.style.bottom);
-
-                if (Math.random() > 0.30) {
-                    spawnFlyingCoinFromBlock(blockLeft + 8, blockBottom + 32, false);
-                } else {
-                    activateSpeedBoost();
-                }
-            }
-        }
-
-        function activateSpeedBoost() {
-            isBoostActive = true;
-            document.getElementById("mario-viewport").classList.add("boosted");
-            objectMovingSpeed = baseSpeed * 1.8;
-            
-            playSound('boost');
-            triggerToast("SÜPER HIZ BOOSTU! ⚡ (3 KAT PARA!)", "⚡");
-
-            document.getElementById("mario-char").style.transform = "skewX(-10deg)";
-            clearTimeout(boostTimer);
-            
-            boostTimer = setTimeout(() => {
-                deactivateBoost();
-            }, 5000);
-        }
-
-        function deactivateBoost() {
-            isBoostActive = false;
-            document.getElementById("mario-viewport").classList.remove("boosted");
-            objectMovingSpeed = baseSpeed;
-            document.getElementById("mario-char").style.transform = "skewX(0deg)";
-            if (isGameRunning) {
-                triggerToast("Boost Sona Erdi", "💨");
-            }
-        }
-
-        function spawnFlyingCoinFromBlock(x, y, isBoostReward = false) {
-            const fCoin = document.createElement("div");
-            fCoin.className = "game-obj";
-            fCoin.style.position = "absolute";
-            fCoin.style.width = "22px";
-            fCoin.style.height = "22px";
-            fCoin.style.background = "#facc15";
-            fCoin.style.border = "2px solid #ca8a04";
-            fCoin.style.borderRadius = "50%";
-            fCoin.style.display = "flex";
-            fCoin.style.alignItems = "center";
-            fCoin.style.justifyContent = "center";
-            fCoin.style.zIndex = "10";
-            fCoin.style.transition = "all 0.3s ease-out";
-            fCoin.style.left = `${x}px`;
-            fCoin.style.bottom = `${y}px`;
-            fCoin.innerHTML = `<span style="font-size: 10px; font-weight: bold; color: #854d0e;">$</span>`;
-
-            document.getElementById("mario-objects-container").appendChild(fCoin);
-            
-            playSound('coin');
-
-            setTimeout(() => {
-                fCoin.style.bottom = `${y + 35}px`;
-                fCoin.style.opacity = "0";
-                fCoin.style.transform = "scale(1.1)";
-            }, 10);
-
-            let winAmount = isBoostActive ? 3 : 1;
-            incrementScore(winAmount);
-
-            setTimeout(() => { fCoin.remove(); }, 300);
-        }
-
-        function collectCoinItem(coin) {
-            coin.remove();
-            
-            let winAmount = isBoostActive ? 3 : 1;
-            incrementScore(winAmount);
-            
-            playSound('coin');
-
-            const pulse = document.createElement("div");
-            pulse.innerText = `+${winAmount} TL`;
-            pulse.style.position = "absolute";
-            pulse.style.color = "#fde047";
-            pulse.style.fontWeight = "bold";
-            pulse.style.fontSize = "12px";
-            pulse.style.pointerEvents = "none";
-            pulse.className = "animate-ping";
-            pulse.style.left = `${charFixedX}px`;
-            pulse.style.bottom = `${groundThreshold + marioPositionHeightY + 40}px`;
-            document.getElementById("mario-viewport").appendChild(pulse);
-            setTimeout(() => pulse.remove(), 600);
-        }
-
-        function incrementScore(amount) {
-            playerAccount.money += amount;
-            saveDataToStorage();
-            document.getElementById("mario-current-score").innerText = playerAccount.money;
-        }
-
-        function generateEntitiesFlow() {
-            if (!isGameRunning) return;
-
-            let minDelay = Math.max(800, 1500 - (marioLevel * 100));
-            let varDelay = Math.max(500, 1000 - (marioLevel * 50));
-            const delay = Math.random() * varDelay + minDelay;
-
-            spawnIntervalTimer = setTimeout(() => {
-                chooseAndSpawnGroupPattern();
-                generateEntitiesFlow();
-            }, delay);
-        }
-
-        function chooseAndSpawnGroupPattern() {
-            const rand = Math.random();
-            
-            if (rand < 0.25) {
-                createThreeBlockSpikePattern();
-            } else if (rand < 0.50) {
-                createDoublePipePattern();
-            } else if (rand < 0.75) {
-                createQuestionBlockAndCoins();
-            } else {
-                createBrickStairPattern();
-            }
-        }
-
-        // --- DİNAMİK EKRAN GENİŞLİĞİNE GÖRE SPAWN HESAPLAMA (ÇÖZÜM!) ---
-        function getViewportWidth() {
-            const viewport = document.getElementById("mario-viewport");
-            return viewport ? viewport.clientWidth : window.innerWidth;
-        }
-
-        // PARKUR A: 3 Blok ve Altlarında Diken (Uyumlu!)
-        function createThreeBlockSpikePattern() {
-            const startX = getViewportWidth(); // Ekranın pikseller cinsinden en sağ kenarı!
-            const height = groundThreshold + 85;
-
-            // Altına Kırmızı Diken Yerleştir
-            const spike = document.createElement("div");
-            spike.className = "game-obj";
-            spike.style.position = "absolute";
-            spike.dataset.type = "obstacle";
-            spike.style.left = `${startX}px`;
-            spike.style.bottom = `${groundThreshold}px`;
-            spike.style.height = "24px";
-            spike.style.width = "24px";
-            spike.innerHTML = `
-                <div style="width: 0; height: 0; border-left: 12px solid transparent; border-right: 12px solid transparent; border-bottom: 24px solid #ef4444;"></div>
-            `;
-            document.getElementById("mario-objects-container").appendChild(spike);
-
-            // Üstüne 3 adet blok diz (Dinamik Piksel Başlangıcı)
-            for (let i = 0; i < 3; i++) {
-                setTimeout(() => {
-                    if (!isGameRunning) return;
-                    
-                    const block = document.createElement("div");
-                    block.className = "game-obj";
-                    block.style.position = "absolute";
-                    block.style.border = "2px solid black";
-                    block.style.borderRadius = "4px";
-                    block.style.width = "32px";
-                    block.style.height = "32px";
-                    block.style.backgroundColor = "#ea580c";
-                    block.dataset.type = "brick";
-                    
-                    // Her bloğu bir sonrakinin arkasına piksel cinsinden konumlandır
-                    block.style.left = `${getViewportWidth() + (i * 34)}px`;
-                    block.style.bottom = `${height}px`;
-                    block.innerHTML = `
-                        <div style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 2px; opacity: 0.9;">
-                            <div style="height: 6px; border-bottom: 1px solid rgba(0,0,0,0.3); display: flex; justify-content: space-between;">
-                                <div style="width: 8px; border-right: 1px solid rgba(0,0,0,0.3);"></div>
-                                <div style="width: 8px; border-right: 1px solid rgba(0,0,0,0.3);"></div>
-                            </div>
-                            <div style="flex: 1; display: flex; justify-content: space-between;">
-                                <div style="width: 4px; border-right: 1px solid rgba(0,0,0,0.3);"></div>
-                                <div style="width: 10px; border-right: 1px solid rgba(0,0,0,0.3);"></div>
-                            </div>
-                        </div>
-                    `;
-                    document.getElementById("mario-objects-container").appendChild(block);
-                }, i * 150);
-            }
-        }
-
-        // PARKUR B: İkili Yeşil Boru Parkuru
-        function createDoublePipePattern() {
-            const startX = getViewportWidth();
-
-            const pipe1 = document.createElement("div");
-            pipe1.className = "game-obj";
-            pipe1.style.position = "absolute";
-            pipe1.dataset.type = "obstacle";
-            pipe1.style.left = `${startX}px`;
-            pipe1.style.bottom = `${groundThreshold}px`;
-            pipe1.style.height = "28px";
-            pipe1.style.width = "28px";
-            pipe1.innerHTML = `
-                <div style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
-                    <div style="height: 12px; background: #22c55e; border: 2px solid black; border-radius: 2px;"></div>
-                    <div style="flex: 1; background: #16a34a; border-left: 2px solid black; border-right: 2px solid black;"></div>
-                </div>
-            `;
-            document.getElementById("mario-objects-container").appendChild(pipe1);
-
-            setTimeout(() => {
-                if (!isGameRunning) return;
-                const pipe2 = document.createElement("div");
-                pipe2.className = "game-obj";
-                pipe2.style.position = "absolute";
-                pipe2.dataset.type = "obstacle";
-                pipe2.style.left = `${getViewportWidth()}px`;
-                pipe2.style.bottom = `${groundThreshold}px`;
-                pipe2.style.height = "44px";
-                pipe2.style.width = "28px";
-                pipe2.innerHTML = `
-                    <div style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between;">
-                        <div style="height: 16px; background: #22c55e; border: 2px solid black; border-radius: 2px;"></div>
-                        <div style="flex: 1; background: #16a34a; border-left: 2px solid black; border-right: 2px solid black;"></div>
-                    </div>
-                `;
-                document.getElementById("mario-objects-container").appendChild(pipe2);
-            }, 550);
-        }
-
-        // PARKUR C: Soru İşareti Blokları ve Altınlar
-        function createQuestionBlockAndCoins() {
-            const startX = getViewportWidth();
-
-            const qBlock = document.createElement("div");
-            qBlock.className = "game-obj question-block-anim";
-            qBlock.style.position = "absolute";
-            qBlock.style.border = "2px solid black";
-            qBlock.style.borderRadius = "4px";
-            qBlock.style.width = "32px";
-            qBlock.style.height = "32px";
-            qBlock.dataset.type = "question";
-            qBlock.dataset.used = "false";
-            qBlock.style.left = `${startX}px`;
-            qBlock.style.bottom = `${groundThreshold + 95}px`;
-            qBlock.innerHTML = `<span style="color: white; font-weight: bold; font-size: 14px;">?</span>`;
-            document.getElementById("mario-objects-container").appendChild(qBlock);
-
-            for (let i = 0; i < 2; i++) {
-                setTimeout(() => {
-                    if (!isGameRunning) return;
-                    const coin = document.createElement("div");
-                    coin.className = "game-obj";
-                    coin.style.position = "absolute";
-                    coin.style.width = "22px";
-                    coin.style.height = "22px";
-                    coin.style.background = "#facc15";
-                    coin.style.border = "2px solid #ca8a04";
-                    coin.style.borderRadius = "50%";
-                    coin.style.display = "flex";
-                    coin.style.alignItems = "center";
-                    coin.style.justifyContent = "center";
-                    coin.dataset.type = "coin";
-                    coin.style.left = `${getViewportWidth()}px`;
-                    coin.style.bottom = `${groundThreshold + 40}px`;
-                    coin.innerHTML = `<span style="font-size: 10px; font-weight: bold; color: #854d0e;">$</span>`;
-                    document.getElementById("mario-objects-container").appendChild(coin);
-                }, (i + 1) * 350);
-            }
-        }
-
-        // PARKUR D: Merdiven Basamakları Düzeni
-        function createBrickStairPattern() {
-            const startX = getViewportWidth();
-            const stepWidth = 32;
-
-            for (let i = 0; i < 3; i++) {
-                setTimeout(() => {
-                    if (!isGameRunning) return;
-                    const stepHeight = groundThreshold + (i * 32);
-                    
-                    const block = document.createElement("div");
-                    block.className = "game-obj";
-                    block.style.position = "absolute";
-                    block.style.border = "2px solid black";
-                    block.style.borderRadius = "4px";
-                    block.style.width = `${stepWidth}px`;
-                    block.style.height = "32px";
-                    block.style.backgroundColor = "#ea580c";
-                    block.dataset.type = "brick";
-                    block.style.left = `${getViewportWidth()}px`;
-                    block.style.bottom = `${stepHeight}px`;
-                    block.innerHTML = `
-                        <div style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 2px; opacity: 0.9;">
-                            <div style="height: 6px; border-bottom: 1px solid rgba(0,0,0,0.3); display: flex; justify-content: space-between;">
-                                <div style="width: 8px; border-right: 1px solid rgba(0,0,0,0.3);"></div>
-                                <div style="width: 8px; border-right: 1px solid rgba(0,0,0,0.3);"></div>
-                            </div>
-                            <div style="flex: 1; display: flex; justify-content: space-between;">
-                                <div style="width: 4px; border-right: 1px solid rgba(0,0,0,0.3);"></div>
-                                <div style="width: 10px; border-right: 1px solid rgba(0,0,0,0.3);"></div>
-                            </div>
-                        </div>
-                    `;
-                    document.getElementById("mario-objects-container").appendChild(block);
-                }, i * 150);
-            }
-        }
-
-        function handleGameOver() {
-            isGameRunning = false;
-            clearTimeout(spawnIntervalTimer);
-            clearInterval(physicalStepLoop);
-            clearTimeout(boostTimer);
-            deactivateBoost();
-            
-            playSound('death');
-
-            document.getElementById("mario-final-level").innerText = marioLevel;
-            document.getElementById("mario-final-score").innerText = playerAccount.money;
-            document.getElementById("mario-over-overlay").style.display = "flex";
-
-            triggerToast("Engele çarptın! Seviye sıfırlandı.", "😢");
-        }
-
-        // --- BİLDİRİM VE TOST SİSTEMİ ---
-        function triggerToast(text, emoji = "🍄") {
-            const toast = document.getElementById("toast-notification");
-            document.getElementById("toast-emoji").innerText = emoji;
-            document.getElementById("toast-message-text").innerText = text;
-
-            toast.classList.add("show");
-            setTimeout(() => { toast.classList.remove("show"); }, 2500);
-        }
-
-        // --- KONTROL OLAYI TETİKLEYİCİLERİ ---
-        const touchArea = document.getElementById("touch-jump-surface");
-        touchArea.addEventListener("touchstart", (e) => { e.preventDefault(); executeJumpAction(); });
-        touchArea.addEventListener("mousedown", (e) => { e.preventDefault(); executeJumpAction(); });
-
-        const rightJumpBtn = document.getElementById("right-jump-action-btn");
-        rightJumpBtn.addEventListener("touchstart", (e) => { e.preventDefault(); executeJumpAction(); });
-        rightJumpBtn.addEventListener("mousedown", (e) => { e.preventDefault(); executeJumpAction(); });
-
-        window.addEventListener("keydown", (e) => {
-            if (e.code === "Space" || e.code === "ArrowUp") {
-                if (document.getElementById("mario-screen").style.display === "block") {
-                    e.preventDefault();
-                    executeJumpAction();
-                }
-            }
-        });
-
-        // --- ROBOT MESAJ DÖNGÜSÜ ---
-        let mesajlar = [
-            "Merhaba! 👋",
-            "Mario'yu denedin mi? 🍄",
-            "Mini Minecraft yakında! ⛏️",
-            "Bol şans! 🎮",
-            "TL kazanmaya devam et! 💰",
-            "Yeni oyunlar gelecek! ⭐",
-            "İyi eğlenceler! 😄",
-            "See you! 👋"
-        ];
-
-        setInterval(function() {
-            let r = Math.floor(Math.random() * mesajlar.length);
-            document.getElementById("message").innerHTML = mesajlar[r];
-        }, 4000);
-    </script>
 </body>
 </html>
-
-```
